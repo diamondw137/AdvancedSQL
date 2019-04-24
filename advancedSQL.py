@@ -34,8 +34,9 @@ def welcome ():
 @app.route("/api/station")
 def station():
     """Return a list of all stations"""
+    session = Session(engine)
     #Query
-    results = session.query(measurement.station).all()
+    results = session.query(Measurements.station).group_by(Measurements.station).all()
     #covert tuples into list
     stations = list(np.ravel(results))
 
@@ -44,18 +45,20 @@ def station():
 @app.route("/api/measurement")
 def measurement():
     """Return a list of all precipitations and dates"""
+    session = Session(engine)
     #Query
     results = session.query(Measurements.station, Measurements.prcp, Measurements.date, Measurements.tobs).all()
     #covert tuples into list
     measurements = []
-    for prcp in results:
+    for station, prcp, date, tobs in results:
         measurements_dict = {}
         measurements_dict["station"] = station
         measurements_dict["prcp"] = prcp
         measurements_dict["date"] = date
         measurements_dict["tobs"] = tobs
-    
+        measurements.append(measurements_dict)
     return jsonify(measurements)
 
 if __name__ == '__main__':
     app.run(debug=True)
+
